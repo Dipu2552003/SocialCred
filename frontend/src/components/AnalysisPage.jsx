@@ -1,21 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 const AnalysisPage = () => {
   const [file, setFile] = useState(null);
-  const [dropdownValue, setDropdownValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [dropdownValue, setDropdownValue] = useState(null); // Store dropdown value
+
+  // Retrieve the financialPrediction from localStorage
+  useEffect(() => {
+    const userCache = localStorage.getItem("user");
+
+    // Check if the cache exists and parse it
+    if (userCache) {
+      const user = JSON.parse(userCache); // Parse the string into an object
+      if (user && user.prediction) {
+        setDropdownValue(user.prediction); // Access the 'prediction' property (which is a string)
+      } else {
+        setDropdownValue(null); // Set to null if 'prediction' is not found
+      }
+    } else {
+      setDropdownValue(null); // Set to null if there's no cached data
+    }
+  }, []);
 
   // Handle file upload
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
-  };
-
-  // Handle dropdown value change
-  const handleDropdownChange = (e) => {
-    setDropdownValue(e.target.value);
   };
 
   // Handle sentiment analysis request
@@ -26,17 +38,23 @@ const AnalysisPage = () => {
     }
 
     if (!dropdownValue) {
-      alert("Please select a valid dropdown value.");
+      alert("No sentiment value selected.");
       return;
     }
 
     setLoading(true);
     setError("");
 
-    // Create FormData to send file and dropdown value
+    // Map the string value of dropdownValue to its corresponding numerical value
+    let sentimentValue;
+    if (dropdownValue === "Bad") sentimentValue = 1;
+    else if (dropdownValue === "Neutral") sentimentValue = 2;
+    else if (dropdownValue === "Good") sentimentValue = 3;
+
+    // Create FormData to send file and mapped sentiment value
     const formData = new FormData();
     formData.append("file", file); // Append file
-    formData.append("dropdown", dropdownValue); // Append dropdown value
+    formData.append("dropdown", sentimentValue); // Append the numerical sentiment value
 
     try {
       const response = await axios.post(
@@ -73,25 +91,18 @@ const AnalysisPage = () => {
         />
       </div>
 
-      {/* Dropdown selection */}
+      {/* Display the current dropdown value */}
       <div className="mb-4">
-        <label
-          className="block text-gray-700 font-semibold mb-2"
-          htmlFor="dropdown"
-        >
-          Select Option:
-        </label>
-        <select
-          id="dropdown"
-          value={dropdownValue}
-          onChange={handleDropdownChange}
-          className="border border-gray-300 rounded p-2 w-full"
-        >
-          <option value="">-- Select --</option>
-          <option value="1">Option 1</option>
-          <option value="2">Option 2</option>
-          <option value="3">Option 3</option>
-        </select>
+        <p className="font-semibold text-gray-700">
+          Current Sentiment Value:{" "}
+          {dropdownValue === "Bad"
+            ? "Bad"
+            : dropdownValue === "Neutral"
+            ? "Neutral"
+            : dropdownValue === "Good"
+            ? "Good"
+            : "None"}
+        </p>
       </div>
 
       {/* Analyze Sentiment button */}

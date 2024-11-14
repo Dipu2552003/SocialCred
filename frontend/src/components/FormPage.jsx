@@ -42,7 +42,29 @@ const FormPage = () => {
         "http://127.0.0.1:5000/api/predict_financial",
         formData
       );
-      setPrediction(response.data.prediction);
+      const predictionValue = response.data.prediction;
+
+      // Map the prediction to cache value
+      let cacheValue = null;
+      if (predictionValue === "Good") {
+        cacheValue = 3;
+      } else if (predictionValue === "Neutral") {
+        cacheValue = 2;
+      } else if (predictionValue === "Bad") {
+        cacheValue = 1;
+      }
+
+      // Store the prediction value in localStorage
+      if (cacheValue !== null) {
+        localStorage.setItem("financialPrediction", cacheValue);
+      }
+
+      // Store the form data and prediction in the user object in localStorage
+      const user = { ...formData, prediction: predictionValue };
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // Set the prediction state to show
+      setPrediction(predictionValue);
     } catch (error) {
       console.error("Error during prediction", error);
     }
