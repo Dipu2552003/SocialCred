@@ -59,9 +59,18 @@ const FormPage = () => {
         localStorage.setItem("financialPrediction", cacheValue);
       }
 
-      // Store the form data and prediction in the user object in localStorage
-      const user = { ...formData, prediction: predictionValue };
-      localStorage.setItem("user", JSON.stringify(user));
+      // Retrieve the existing user object from localStorage (if it exists)
+      const existingUser = JSON.parse(localStorage.getItem("user")) || {};
+
+      // Merge the existing user data with the new form data and prediction
+      const updatedUser = {
+        ...existingUser,
+        ...formData,
+        prediction: predictionValue,
+      };
+
+      // Store the updated user object in localStorage
+      localStorage.setItem("user", JSON.stringify(updatedUser));
 
       // Set the prediction state to show
       setPrediction(predictionValue);
